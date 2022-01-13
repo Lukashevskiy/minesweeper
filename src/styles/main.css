@@ -1,0 +1,76 @@
+body{
+	margin: 0;
+	background-color: white;
+}
+
+
+.game_field{
+	margin: auto;
+	margin-top: 100px;
+	background-color: lightgrey;
+	height: auto;
+	width: 600px;
+	padding: 15px;
+}
+
+.title_menu{
+	width: inherit;
+	height: 100px;
+	background-color: white;
+	margin-bottom: 15px;
+}
+
+.field{
+	width: inherit;
+	height: auto;
+	background-color: white;
+	display: grid;
+	grid-template-columns: repeat(12, 50px);
+	grid-template-rows: repeat(12, 50px);
+}
+
+.closen_cell{
+	background-color: grey;
+	border: 3px solid black;
+}
+
+.empty_open_cell{
+	background-color: lightgrey;
+}
+
+.one_open_cell{
+	color: blue;
+}
+
+.two_open_cell{
+	color: green;
+}
+
+.three_open_cell{
+	color: red;
+}
+
+.four_open_cell{
+	color: darkblue;
+}
+
+.five_open_cell{
+	color: darkred;
+}
+
+.six_open_cell{
+	color: lightgreen;
+}
+
+.seven_open_cell{
+	color: black;
+}
+
+.eight_open_cell{
+	color: green;
+}
+
+.bomb_open_cell{
+	border-radius: 50%;
+	border-color: black;
+}
