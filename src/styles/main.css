@@ -25,7 +25,7 @@ body{
 	border-bottom: 5px solid grey;
 	border-right: 5px solid grey;
 	margin: auto;
-	margin-top: 100px;
+	/*margin-top: 100px;*/
 	background-color: lightgrey;
 	height: auto;
 	padding: 10px;
@@ -199,8 +199,57 @@ button[disabled]{
 	border-right: 5px solid white;
 }	
 
+.sub_menu{
+	border-top: 5px solid white;
+	border-left: 5px solid white;
+	border-bottom: 5px solid grey;
+	border-right: 5px solid grey;
+	margin: auto;
+	height: auto;
+	padding: 5px;
+	width: 400px;
+	display: flex;
+	flex-direction: column;
+	padding: 5px;
+
+}
+.sub_menu button{
+	margin: 0;
+	height: 30px;
+	border-top: 5px solid white;
+	border-left: 5px solid white;
+	border-bottom: 5px solid grey;
+	border-right: 5px solid grey;
+}
+.sub_menu input[type='radio']{
+	margin: 0;
+	width: 15px;
+	height: 15px;
+	margin-right: 5px;
+	margin-left: 10px;
+	
+}
+.sub_menu span{
+	vertical-align: middle;
+	height: 20px;
+	font-size: 10pt;
+    text-align: left;
+	padding: 0;
+	margin: 0;
+	
+}
+.sub_menu_el{
+	display: flex;
+	align-items: center;
+	border-top: 3px solid grey;
+	border-left: 3px solid grey;
+	border-bottom: 3px solid white;
+	border-right: 3px solid white;
+	height: 20px;
+}
 
 .window{
-	height: auto;
-	width: auto;
+	position: absolute;
+	width: 100%;
+	top: 200px;
 }

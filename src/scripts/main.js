@@ -10,6 +10,13 @@ let field_html;
 let first_step = true;
 let menu_title;
 let flags;
+let restart_button;
+let display_bombs;
+let display_flags;
+let sub_menu;
+let modd = 'easy';
+let cell_of_focus = -1;
+let last_instance;
 class Cell{
 	x;
 	y;
@@ -46,22 +53,61 @@ function init_mode(mode){
 	flags = count_bombs;
 }
 
-function on_create() {
-	init_mode('easy');
+function get_value_from_sub_menu(sub_menu) {
+	for(let i = 0; i < sub_menu.children.length; i++){
+		if(sub_menu.children[i].firstElementChild.checked){
+			modd = sub_menu.children[i].firstElementChild.value;
+			return modd;
+		}
+	}
+}
+function res() {
+	field_html.innerHTML = '';
+	mas_of_html_cells = [];
+	mas_of_cells = [];
+	console.log('f');
+	first_step = true;
+	modd = get_value_from_sub_menu(sub_menu);
+	on_create(modd);
+}
+function on_click_for_main_button(event) {
+	if(event.which === 1){
+		res();
+	}else if(event.which === 3){
+		sub_menu.style.display = 'block';
+		restart_button.textContent = get_number('smile_thinking');
+		for(let i = 0; i < field_x; i++){
+			for(let j = 0; j < field_y; j++){
+				mas_of_html_cells[i][j].disabled = true;
+			}
+		}
+	
+	}
+}
+function addLeadingZeros(sNum, len) {
+    len -= sNum.length;
+    while (len--) sNum = '0' + sNum;
+    return sNum;
+}
 
+function on_create() {
+	init_mode(modd);
+	sub_menu = document.querySelector('.sub_menu');
 	field_html = document.querySelector('.field');
 	menu_title = document.querySelector('.title_menu');
-	menu_title.children[0].textContent = count_bombs;
-	menu_title.children[2].textContent = flags;
-	menu_title.children[1].textContent = get_number('smile_ok');
-	menu_title.children[1].addEventListener('click', function() { 
-																	field_html.innerHTML = "";
-																	first_step = true;
-																	on_create();
-																	console.log('f');
-																	});
-	menu_title.children[1].addEventListener('mouseenter', function() { EventTarget.textContent = get_number('smile_on_focus');});
-	menu_title.children[1].addEventListener('mouseleave', function() { EventTarget.textContent = get_number('smile_ok');});
+	sub_menu.style.display = 'none';
+
+	display_bombs = menu_title.children[0];
+	display_flags = menu_title.children[2];
+	restart_button = menu_title.children[1];
+
+	display_bombs.textContent = display_bombs.textContent = addLeadingZeros(String(count_bombs), 3);
+	display_flags.textContent = display_bombs.textContent = addLeadingZeros(String(flags), 3);
+	restart_button.disabled = false;
+	restart_button.textContent = get_number('smile_ok');
+
+	restart_button.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+	restart_button.addEventListener('mousedown', on_click_for_main_button, false);
 	document.querySelector('.game_field').style.width = field_x*50+'px';
 
 	field_html.style.gridTemplateColumns = 'repeat('+field_x+', 50px)';
@@ -96,18 +142,58 @@ function on_create() {
 
 	for(let i = 0; i < field_x; i++){
 		for(let j = 0; j < field_y; j++){
-			mas_of_html_cells[i][j].addEventListener('click', function(){ open_cell(i,j);});
-			mas_of_html_cells[i][j].addEventListener('contextmenu', function(){ 
-																				
-																				mas_line_html[x][y].classList.remove('closen_cell');
-																				mas_of_html_cells[x][y].classList.add('closen_cell_by_flag');
-																				mas_of_html_cells[x][y].textContent = get_number('flag');
-																				
-																				},false);
+			mas_of_html_cells[i][j].addEventListener('mousedown', function(event){ click_to_cell(event, i,j);
+																				});
+			mas_of_html_cells[i][j].addEventListener('contextmenu', function(e){ e.preventDefault(); });
+		}
+	}
+	document.addEventListener('keydown', key_event);
+}
+function click_to_cell(event, i, j) {
+	if(event.which === 1){
+		open_cell(i,j);
+	}else{
+		if(mas_of_html_cells[i][j].classList[0] === 'closen_cell'){
+			flags--;
+			display_bombs.textContent = addLeadingZeros(String(flags), 3);;
+			mas_of_html_cells[i][j].classList.remove('closen_cell');
+			mas_of_html_cells[i][j].classList.add('closen_cell_by_flag');
+			mas_of_html_cells[i][j].textContent = get_number('flag');
+		}else{
+			flags++;
+			display_bombs.textContent = addLeadingZeros(String(flags), 3);
+			mas_of_html_cells[i][j].classList.remove('closen_cell_by_flag');
+			mas_of_html_cells[i][j].classList.add('closen_cell');
+			mas_of_html_cells[i][j].textContent = "";
+		}
+	}
+	if(!first_step){
+		if(check_is_win()){
+			finish_game(1);
 		}
 	}
 }
 
+function check_is_win() {
+	let is_open = true;
+	let is_all_cover = true;
+	for(let i = 0; i < field_x; i++){
+		for(let j = 0; j < field_y; j++){
+			if(mas_of_cells[i][j].type !== 'bomb' && (mas_of_html_cells[i][j].classList[0] === 'closen_cell' || mas_of_html_cells[i][j].classList[0] === 'closen_cell_by_flag')){
+				is_open = false;
+			}
+		}
+	}
+	for(let i = 0; i < bombs_coords.length; i++){
+		if(mas_of_html_cells[bombs_coords[i][0]][bombs_coords[i][1]].classList !== 'closen_cell_by_flag'){
+			is_all_cover = false;
+		}
+	}
+	console.log('-----------');
+	console.log(is_all_cover);
+	console.log(is_open);
+	return is_all_cover || is_open;
+}
 
 function generate_bombs(count, field_count, first) {
 	let field = new Array(field_count);
@@ -134,7 +220,7 @@ function generate_bombs(count, field_count, first) {
 		field_count--;
 
 	}
-	//console.log(bombs_coords.length);
+	console.log(bombs_coords.length);
 }
 
 function get_dependences(){
@@ -178,7 +264,8 @@ function get_dependences(){
 						break;
 					case 8: 
 						mas_of_cells[i][j].type = 'eight';
-						break;	
+						break;
+
 				}
 			}
 		}
@@ -197,6 +284,8 @@ function is_posible_and_is_bomb(x, y){
 }
 
 function open_cell(x,y){
+	mas_of_html_cells[x][y].removeEventListener('mousedown', function(event){ open_cell(x,y);});
+	mas_of_html_cells[x][y].disabled = true;
 	if(first_step){
 		generate_bombs(count_bombs, field_y*field_x, x*field_x+y);
 		get_dependences();
@@ -255,6 +344,8 @@ function get_number(text_interpretation){
 			return '😅';
 		case 'smile_unhappy':
 			return '😭';
+		case 'smile_thinking':
+			return '🤔';
 	}
 }
 
@@ -269,9 +360,19 @@ function finish_game(mod) {
 		for(let i = 0; i < bombs_coords.length; i++){
 			mas_of_html_cells[bombs_coords[i][0]][bombs_coords[i][1]].classList.remove('closen_cell');
 			mas_of_html_cells[bombs_coords[i][0]][bombs_coords[i][1]].classList.add('bomb_open_cell');
+			if(mas_of_html_cells[bombs_coords[i][0]][bombs_coords[i][1]].textContent === get_number('flag')){
+				mas_of_html_cells[bombs_coords[i][0]][bombs_coords[i][1]].style.backgroundColor = 'green';
+			}
 			mas_of_html_cells[bombs_coords[i][0]][bombs_coords[i][1]].textContent = get_number('bomb');
 		}
 		menu_title.children[1].textContent = get_number('smile_unhappy');
+	}else{
+		for(let i = 0; i < field_x; i++){
+			for(let j = 0; j < field_y; j++){
+				mas_of_html_cells[i][j].disabled = true;
+			}
+		}
+		menu_title.children[1].textContent = get_number('smile_on_focus');
 	}
 }
 
@@ -293,5 +394,51 @@ function open_nier_cells(x,y){
 			mas_of_html_cells[x][y].classList.add(mas_of_cells[x][y].type+'_open_cell');
 			mas_of_html_cells[x][y].textContent = get_number(mas_of_cells[x][y].type);
 		}	
+	}
+}
+
+function key_event(event){
+	console.log(event.keyCode);
+	if(event.keyCode === 68){
+		if(cell_of_focus !== -1){
+			mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = last_instance;
+		}
+		cell_of_focus = (cell_of_focus+1)%(field_y*field_x);
+		last_instance = mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor;
+		mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = 'lightblue';
+	}else if(event.keyCode === 83){
+		if(cell_of_focus !== -1){
+			mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = last_instance;
+		}
+		cell_of_focus = (cell_of_focus+field_y)%(field_y*field_x);
+		last_instance = mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor;
+		mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = 'lightblue';
+	}else if(event.keyCode === 87){//!
+		if(cell_of_focus !== -1){
+			mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = last_instance;
+		}
+		cell_of_focus = Math.abs(cell_of_focus-field_y)%(field_x*field_y);
+		last_instance = mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor;
+		mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = 'lightblue';
+	}else if(event.keyCode === 65){//!
+		if(cell_of_focus !== -1){
+			mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = last_instance;
+		}
+		cell_of_focus = Math.abs(cell_of_focus-1)%(field_y*field_x);
+		last_instance = mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor;
+		mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].style.backgroundColor = 'lightblue';
+	}else if(event.keyCode === 13){
+		if(cell_of_focus !== -1){
+			if(event.ctrlKey){
+				let event = new MouseEvent('mousedown',{ 'button':2});
+			mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].dispatchEvent(event);
+			}else{
+				let event = new MouseEvent('mousedown'); //{ 'button':2}
+				mas_of_html_cells[Math.floor(cell_of_focus/field_x)][cell_of_focus%field_y].dispatchEvent(event);
+			}
+		}
+		
+	}else if(event.keyCode === 82){
+		res();
 	}
 }
